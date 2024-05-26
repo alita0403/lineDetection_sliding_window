@@ -67,34 +67,34 @@ def warp(img):
     warped_img =cv2.warpPerspective(img, M, (200,300), flags=cv2.INTER_LINEAR)
     return warped_img,miv
 
-# def draw_lane(original_img, binary_img, l_fit, r_fit, Minv):
-#     new_img = np.copy(original_img)
-#     if l_fit is None or r_fit is None:
-#         return original_img
+def draw_lane(original_img, binary_img, l_fit, r_fit, Minv):
+    new_img = np.copy(original_img)
+    if l_fit is None or r_fit is None:
+        return original_img
    
-#     warp_zero = np.zeros_like(binary_img).astype(np.uint8)
-#     color_warp = np.dstack((warp_zero, warp_zero, warp_zero))
+    # warp_zero = np.zeros_like(binary_img).astype(np.uint8)
+    color_warp = np.zeros((300,200,3), dtype='uint8')
+    # color_warp = np.dstack((warp_zero, warp_zero, warp_zero))
     
-#     h,w = binary_img.shape
-#     ploty = np.linspace(0, h-1, num=h)
-#     left_fitx = l_fit[0]*ploty**2 + l_fit[1]*ploty + l_fit[2]
-#     right_fitx = r_fit[0]*ploty**2 + r_fit[1]*ploty + r_fit[2]
+    h,w = binary_img.shape
+    ploty = np.linspace(0, h-1, num=h)
+    left_fitx = l_fit[0]*ploty**2 + l_fit[1]*ploty + l_fit[2]
+    right_fitx = r_fit[0]*ploty**2 + r_fit[1]*ploty + r_fit[2]
 
    
-#     pts_left = np.array([np.transpose(np.vstack([left_fitx, ploty]))])
-#     pts_right = np.array([np.flipud(np.transpose(np.vstack([right_fitx, ploty])))])
-#     pts = np.hstack((pts_left, pts_right))
+    pts_left = np.array([np.transpose(np.vstack([left_fitx, ploty]))])
+    pts_right = np.array([np.flipud(np.transpose(np.vstack([right_fitx, ploty])))])
+    pts = np.hstack((pts_left, pts_right))
 
 
-#     cv2.fillPoly(color_warp, np.int_([pts]), (0,255, 0))
-#     cv2.polylines(color_warp, np.int32([pts_left]), isClosed=False, color=(255,0,255), thickness=15)
-#     cv2.polylines(color_warp, np.int32([pts_right]), isClosed=False, color=(0,255,255), thickness=15)
-
-  
-#     newwarp = cv2.warpPerspective(color_warp, Minv, (w, h)) 
+    cv2.fillPoly(color_warp, np.int_([pts]), (0,255, 0))
+    cv2.polylines(color_warp, np.int32([pts_left]), isClosed=False, color=(255,0,255), thickness=15)
+    cv2.polylines(color_warp, np.int32([pts_right]), isClosed=False, color=(0,255,255), thickness=15)
+    
+    newwarp = cv2.warpPerspective(color_warp, Minv, (w, h)) 
    
-#     result = cv2.addWeighted(new_img, 1, newwarp, 0.5, 0)
-#     return result
+    result = cv2.addWeighted(new_img, 1, newwarp, 0.5, 0)
+    return result
 
 def combine(result,warp):
     overlay_height = warp.shape[0]
@@ -132,8 +132,8 @@ def video_processing():
         pipeline_result = pipeline(dst)
         warp_image,miv=warp(pipeline_result)
         result_window,distance, left, right,degree = fit_polynomial(warp_image)
-        # output=draw_lane(image, pipeline_result, left, right, miv)
-        output=image
+        output=draw_lane(image, pipeline_result, left, right, miv)
+
 
         output = combine(output,result_window)
 
